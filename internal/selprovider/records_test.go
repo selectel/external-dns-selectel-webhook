@@ -267,3 +267,61 @@ func getServerRecords(t *testing.T) *httptest.Server {
 
 	return server
 }
+
+func TestCollectEndPoints(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name     string
+		rrSets   []*domains.RRSet
+		expected []*endpoint.Endpoint
+	}{
+		{
+			name: "records of one rrset are merged into one endpoint",
+			rrSets: []*domains.RRSet{
+				{Name: "test.com.", Type: "A", TTL: 300, Records: []domains.RecordItem{{Content: "1.2.3.4"}, {Content: "5.6.7.8"}}},
+			},
+			expected: []*endpoint.Endpoint{
+				endpoint.NewEndpointWithTTL("test.com", "A", 300, "1.2.3.4", "5.6.7.8"),
+			},
+		},
+		{
+			name: "txt records stay one endpoint per record",
+			rrSets: []*domains.RRSet{
+				{Name: "test.com.", Type: "TXT", TTL: 300, Records: []domains.RecordItem{{Content: "\"a\""}, {Content: "\"b\""}}},
+			},
+			expected: []*endpoint.Endpoint{
+				endpoint.NewEndpointWithTTL("test.com", "TXT", 300, "\"a\""),
+				endpoint.NewEndpointWithTTL("test.com", "TXT", 300, "\"b\""),
+			},
+		},
+		{
+			name: "different rrsets give different endpoints",
+			rrSets: []*domains.RRSet{
+				{Name: "test.com.", Type: "A", TTL: 300, Records: []domains.RecordItem{{Content: "1.2.3.4"}}},
+				{Name: "test2.com.", Type: "A", TTL: 60, Records: []domains.RecordItem{{Content: "5.6.7.8"}}},
+			},
+			expected: []*endpoint.Endpoint{
+				endpoint.NewEndpointWithTTL("test.com", "A", 300, "1.2.3.4"),
+				endpoint.NewEndpointWithTTL("test2.com", "A", 60, "5.6.7.8"),
+			},
+		},
+		{
+			name: "empty and unsupported rrsets are skipped",
+			rrSets: []*domains.RRSet{
+				{Name: "test.com.", Type: "A", TTL: 300},
+				{Name: "test.com.", Type: "SOA", TTL: 300, Records: []domains.RecordItem{{Content: "ns1.test.com."}}},
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			p := &Provider{}
+			assert.Equal(t, tc.expected, p.collectEndPoints(tc.rrSets))
+		})
+	}
+}
