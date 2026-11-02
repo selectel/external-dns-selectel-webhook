@@ -38,7 +38,7 @@ func TestWebhook_ApplyChanges(t *testing.T) {
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 		mockProvider.EXPECT().ApplyChanges(gomock.Any(), changes).Return(nil).Times(1)
 
-		req := httptest.NewRequest(http.MethodPost, "/records", bytes.NewReader(body))
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/records", bytes.NewReader(body))
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		resp, err := app.Test(req, -1)
@@ -55,7 +55,7 @@ func TestWebhook_ApplyChanges(t *testing.T) {
 
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 		mockProvider.EXPECT().ApplyChanges(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-		reqBad := httptest.NewRequest(http.MethodPost, "/records", bytes.NewReader([]byte(`{"bad":"request"}`)))
+		reqBad := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/records", bytes.NewReader([]byte(`{"bad":"request"}`)))
 		reqBad.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		respBad, err := app.Test(reqBad)
@@ -73,7 +73,7 @@ func TestWebhook_ApplyChanges(t *testing.T) {
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 		mockProvider.EXPECT().ApplyChanges(gomock.Any(), changes).Return(fmt.Errorf("test error")).Times(1)
 
-		reqFail := httptest.NewRequest(http.MethodPost, "/records", bytes.NewReader(body))
+		reqFail := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/records", bytes.NewReader(body))
 		reqFail.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		respFail, err := app.Test(reqFail)
@@ -90,7 +90,7 @@ func TestWebhook_ApplyChanges(t *testing.T) {
 
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 
-		reqBad := httptest.NewRequest(http.MethodPost, "/records", bytes.NewReader([]byte(`{"wrong:"request"`)))
+		reqBad := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/records", bytes.NewReader([]byte(`{"wrong:"request"`)))
 		reqBad.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		respBad, err := app.Test(reqBad)

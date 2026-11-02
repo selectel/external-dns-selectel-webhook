@@ -134,7 +134,7 @@ func TestNoRRSetFound(t *testing.T) {
 
 	changes := &plan.Changes{
 		UpdateNew: []*endpoint.Endpoint{
-			{DNSName: "test.com", Targets: endpoint.Targets{"notfound.test.com"}},
+			{DNSName: testDomain, Targets: endpoint.Targets{"notfound.test.com"}},
 		},
 	}
 
@@ -214,7 +214,7 @@ func getChangeTypeChanges(changeType ChangeType) *plan.Changes {
 	case Create:
 		return &plan.Changes{
 			Create: []*endpoint.Endpoint{
-				{DNSName: "test.com", Targets: endpoint.Targets{"test.test.com"}},
+				{DNSName: testDomain, Targets: endpoint.Targets{"test.test.com"}},
 			},
 			UpdateNew: []*endpoint.Endpoint{},
 			Delete:    []*endpoint.Endpoint{},
@@ -222,13 +222,13 @@ func getChangeTypeChanges(changeType ChangeType) *plan.Changes {
 	case Update:
 		return &plan.Changes{
 			UpdateNew: []*endpoint.Endpoint{
-				{DNSName: "test.com", Targets: endpoint.Targets{"test.com"}, RecordType: "A"},
+				{DNSName: testDomain, Targets: endpoint.Targets{testDomain}, RecordType: "A"},
 			},
 		}
 	case Delete:
 		return &plan.Changes{
 			Delete: []*endpoint.Endpoint{
-				{DNSName: "test.com", Targets: endpoint.Targets{"test.com"}, RecordType: "A"},
+				{DNSName: testDomain, Targets: endpoint.Targets{testDomain}, RecordType: "A"},
 			},
 		}
 	default:
@@ -342,7 +342,7 @@ func getValidZoneResponseAll() domains.List[domains.Zone] {
 		Count:      2,
 		NextOffset: 0,
 		Items: []*domains.Zone{
-			{ID: "1234", Name: "test.com"},
+			{ID: "1234", Name: testDomain},
 			{ID: "5678", Name: "test2.com"},
 		},
 	}
@@ -369,7 +369,7 @@ func getValidResponseRRSetAll() domains.List[domains.RRSet] {
 				Type: "A",
 				TTL:  300,
 				Records: []domains.RecordItem{
-					{Content: "1.2.3.4"},
+					{Content: testIPv4},
 				},
 			},
 		},

@@ -76,6 +76,11 @@ func (h *httpApiMetrics) CollectRequestDuration(method, path string, duration fl
 
 // NewHttpApiMetrics returns a new instance of httpApiMetrics.
 func NewHttpApiMetrics() HttpApiMetrics {
+	const (
+		methodLabel = "method"
+		pathLabel   = "path"
+	)
+
 	return &httpApiMetrics{
 		httpRequestsTotal: promauto.NewCounter(prometheus.CounterOpts{
 			Name: "http_total_requests_total",
@@ -92,20 +97,20 @@ func NewHttpApiMetrics() HttpApiMetrics {
 		httpRequest: promauto.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_requests_total",
 			Help: "The total number of processed http requests",
-		}, []string{"method", "path", "status_code"}),
+		}, []string{methodLabel, pathLabel, "status_code"}),
 		httpRequestContentLength: promauto.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_requests_content_length_total",
 			Help: "The umber of bytes received in each http request",
-		}, []string{"method", "path"}),
+		}, []string{methodLabel, pathLabel}),
 		httpRequestResponseSize: promauto.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_requests_response_size_total",
 			Help: "The number of bytes returned in each http request",
-		}, []string{"method", "path"}),
+		}, []string{methodLabel, pathLabel}),
 		httpRequestDuration: promauto.NewHistogramVec(prometheus.HistogramOpts{
 			Name:    "http_requests_request_duration",
 			Help:    "Percentiles of HTTP request latencies in seconds",
 			Buckets: getBucketHttpMetrics(),
-		}, []string{"method", "path"}),
+		}, []string{methodLabel, pathLabel}),
 	}
 }
 

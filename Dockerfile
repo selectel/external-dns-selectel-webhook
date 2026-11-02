@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/static-debian11:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot
 
 COPY external-dns-selectel-webhook /external-dns-selectel-webhook
 

@@ -30,7 +30,7 @@ func TestApi(t *testing.T) {
 	t.Run("Test", func(t *testing.T) {
 		t.Parallel()
 
-		req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
 
 		resp, err := app.Test(req)
 		assert.NoError(t, err)

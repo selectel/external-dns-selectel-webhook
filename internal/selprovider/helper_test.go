@@ -10,6 +10,18 @@ import (
 	"sigs.k8s.io/external-dns/endpoint"
 )
 
+const (
+	testDomain            = "test.com"
+	testIPv4              = "1.2.3.4"
+	exampleFQDN           = "example.com."
+	subdomain             = "sub.example.com"
+	subdomainFQDN         = "sub.example.com."
+	testFQDN              = "test."
+	firstDocumentationIP  = "192.0.2.1"
+	secondDocumentationIP = "192.0.2.2"
+	matchingZoneDomain    = "www.foo.com"
+)
+
 //nolint:funlen // because nobody uses this stupid linter
 func TestModifyChange(t *testing.T) {
 	t.Parallel()
@@ -24,70 +36,70 @@ func TestModifyChange(t *testing.T) {
 			ep: &endpoint.Endpoint{
 				DNSName:    "example.com",
 				RecordType: "A",
-				Targets:    []string{"1.2.3.4"},
+				Targets:    []string{testIPv4},
 				RecordTTL:  endpoint.TTL(300),
 			},
 			want: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "A",
-				Targets:    []string{"1.2.3.4"},
+				Targets:    []string{testIPv4},
 				RecordTTL:  endpoint.TTL(300),
 			},
 		},
 		{
 			name: "ttl added",
 			ep: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "A",
-				Targets:    []string{"1.2.3.4"},
+				Targets:    []string{testIPv4},
 			},
 			want: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "A",
-				Targets:    []string{"1.2.3.4"},
+				Targets:    []string{testIPv4},
 				RecordTTL:  endpoint.TTL(300),
 			},
 		},
 		{
 			name: "trailing dot in CNAME targets",
 			ep: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "CNAME",
-				Targets:    []string{"sub.example.com"},
+				Targets:    []string{subdomain},
 				RecordTTL:  endpoint.TTL(300),
 			},
 			want: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "CNAME",
-				Targets:    []string{"sub.example.com."},
+				Targets:    []string{subdomainFQDN},
 				RecordTTL:  endpoint.TTL(300),
 			},
 		},
 		{
 			name: "trailing dot in ALIAS targets",
 			ep: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "ALIAS",
-				Targets:    []string{"sub.example.com"},
+				Targets:    []string{subdomain},
 				RecordTTL:  endpoint.TTL(300),
 			},
 			want: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "ALIAS",
-				Targets:    []string{"sub.example.com."},
+				Targets:    []string{subdomainFQDN},
 				RecordTTL:  endpoint.TTL(300),
 			},
 		},
 		{
 			name: "trailing dot in MX targets",
 			ep: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "MX",
 				Targets:    []string{"mail.example.com"},
 				RecordTTL:  endpoint.TTL(300),
 			},
 			want: &endpoint.Endpoint{
-				DNSName:    "example.com.",
+				DNSName:    exampleFQDN,
 				RecordType: "MX",
 				Targets:    []string{"mail.example.com."},
 				RecordTTL:  endpoint.TTL(300),
@@ -98,13 +110,13 @@ func TestModifyChange(t *testing.T) {
 			ep: &endpoint.Endpoint{
 				DNSName:    "_xmpp._tcp.example.com.",
 				RecordType: "SRV",
-				Targets:    []string{"sub.example.com"},
+				Targets:    []string{subdomain},
 				RecordTTL:  endpoint.TTL(300),
 			},
 			want: &endpoint.Endpoint{
 				DNSName:    "_xmpp._tcp.example.com.",
 				RecordType: "SRV",
-				Targets:    []string{"sub.example.com."},
+				Targets:    []string{subdomainFQDN},
 				RecordTTL:  endpoint.TTL(300),
 			},
 		},
@@ -125,24 +137,24 @@ func TestGetRRSetRecordPost(t *testing.T) {
 	t.Parallel()
 
 	change := &endpoint.Endpoint{
-		DNSName:    "test.",
+		DNSName:    testFQDN,
 		RecordTTL:  endpoint.TTL(300),
 		RecordType: "A",
 		Targets: endpoint.Targets{
-			"192.0.2.1",
-			"192.0.2.2",
+			firstDocumentationIP,
+			secondDocumentationIP,
 		},
 	}
 	expected := &domains.RRSet{
-		Name: "test.",
+		Name: testFQDN,
 		TTL:  300,
 		Type: "A",
 		Records: []domains.RecordItem{
 			{
-				Content: "192.0.2.1",
+				Content: firstDocumentationIP,
 			},
 			{
-				Content: "192.0.2.2",
+				Content: secondDocumentationIP,
 			},
 		},
 	}
@@ -167,7 +179,7 @@ func TestFindBestMatchingZone(t *testing.T) {
 		want      *domains.Zone
 		wantFound bool
 	}{
-		{"Matching Zone", "www.foo.com", zones[0], true},
+		{"Matching Zone", matchingZoneDomain, zones[0], true},
 		{"No Matching Zone", "www.test.com", nil, false},
 	}
 
@@ -187,7 +199,7 @@ func TestFindRRSet(t *testing.T) {
 	t.Parallel()
 
 	rrSets := []*domains.RRSet{
-		{Name: "www.foo.com", Type: "A"},
+		{Name: matchingZoneDomain, Type: "A"},
 		{Name: "www.bar.com", Type: "A"},
 		{Name: "www.baz.com", Type: "A"},
 	}
@@ -199,7 +211,7 @@ func TestFindRRSet(t *testing.T) {
 		want       *domains.RRSet
 		wantFound  bool
 	}{
-		{"Matching RRSet", "www.foo.com", "A", rrSets[0], true},
+		{"Matching RRSet", matchingZoneDomain, "A", rrSets[0], true},
 		{"No Matching RRSet", "www.test.com", "A", nil, false},
 	}
 
@@ -220,17 +232,17 @@ func TestGetLogFields(t *testing.T) {
 	t.Parallel()
 
 	change := &endpoint.Endpoint{
-		DNSName:    "test.",
+		DNSName:    testFQDN,
 		RecordTTL:  endpoint.TTL(300),
 		RecordType: "A",
 		Targets: endpoint.Targets{
-			"192.0.2.1",
-			"192.0.2.2",
+			firstDocumentationIP,
+			secondDocumentationIP,
 		},
 	}
 
 	expected := []zap.Field{
-		zap.String("record", "test."),
+		zap.String("record", testFQDN),
 		zap.String("content", "192.0.2.1,192.0.2.2"),
 		zap.String("type", "A"),
 		zap.String("action", "create"),

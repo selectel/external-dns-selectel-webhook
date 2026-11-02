@@ -34,7 +34,7 @@ func TestMetricsMiddleware(t *testing.T) {
 
 	app := setupTestMetrics(metricsCollector)
 
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", nil)
 	resp, err := app.Test(req)
 
 	assert.NoError(t, err)
