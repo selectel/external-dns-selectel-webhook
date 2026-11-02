@@ -39,7 +39,7 @@ func TestWebhook_Records(t *testing.T) {
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 		mockProvider.EXPECT().Records(gomock.Any()).Return(expectedRecords, nil).Times(1)
 
-		req := httptest.NewRequest(http.MethodGet, "/records", nil)
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/records", nil)
 
 		resp, err := app.Test(req)
 		assert.NoError(t, err)
@@ -61,7 +61,7 @@ func TestWebhook_Records(t *testing.T) {
 		app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 		mockProvider.EXPECT().Records(gomock.Any()).Return(nil, fmt.Errorf("error")).Times(1)
 
-		reqErr := httptest.NewRequest(http.MethodGet, "/records", nil)
+		reqErr := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/records", nil)
 
 		respErr, err := app.Test(reqErr)
 		assert.NoError(t, err)

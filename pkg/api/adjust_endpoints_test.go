@@ -8,13 +8,12 @@ import (
 
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/selectel/external-dns-selectel-webhook/pkg/api"
+	mock_provider "github.com/selectel/external-dns-selectel-webhook/pkg/api/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"sigs.k8s.io/external-dns/endpoint"
-
-	"github.com/selectel/external-dns-selectel-webhook/pkg/api"
-	mock_provider "github.com/selectel/external-dns-selectel-webhook/pkg/api/mock"
 )
 
 func TestWebhook_AdjustEndpoints(t *testing.T) {
@@ -43,7 +42,7 @@ func TestWebhook_AdjustEndpoints(t *testing.T) {
 		body, err := json.Marshal(endpoints)
 		assert.NoError(t, err)
 
-		req := httptest.NewRequest(http.MethodPost, "/adjustendpoints", bytes.NewReader(body))
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/adjustendpoints", bytes.NewReader(body))
 		req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		resp, err := app.Test(req)
@@ -54,7 +53,7 @@ func TestWebhook_AdjustEndpoints(t *testing.T) {
 	t.Run("Test invalid data send by client", func(t *testing.T) {
 		t.Parallel()
 
-		reqBad := httptest.NewRequest(http.MethodPost, "/adjustendpoints", bytes.NewReader([]byte(`{"bad":"request"}`)))
+		reqBad := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/adjustendpoints", bytes.NewReader([]byte(`{"bad":"request"}`)))
 		reqBad.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		respBad, err := app.Test(reqBad)
@@ -65,7 +64,7 @@ func TestWebhook_AdjustEndpoints(t *testing.T) {
 	t.Run("Client send invalid JSON", func(t *testing.T) {
 		t.Parallel()
 
-		reqBad := httptest.NewRequest(http.MethodPost, "/adjustendpoints", bytes.NewReader([]byte(`{"wrong:"request"`)))
+		reqBad := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "/adjustendpoints", bytes.NewReader([]byte(`{"wrong:"request"`)))
 		reqBad.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 		respBad, err := app.Test(reqBad)

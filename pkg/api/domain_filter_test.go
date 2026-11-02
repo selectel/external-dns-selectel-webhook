@@ -33,7 +33,7 @@ func TestWebhook_DomainFilter(t *testing.T) {
 		Return(expectedDomainFilter).
 		Times(1)
 
-	req := httptest.NewRequest(http.MethodGet, "/", bytes.NewReader(nil))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", bytes.NewReader(nil))
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	resp, err := app.Test(req)

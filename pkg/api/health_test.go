@@ -24,7 +24,7 @@ func TestHealth(t *testing.T) {
 
 	app := api.New(mockLogger, mockMetricsCollector, mockProvider)
 
-	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/healthz", nil)
 	req.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
 	resp, err := app.Test(req, -1)

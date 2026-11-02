@@ -28,9 +28,9 @@ func TestRecords(t *testing.T) {
 	endpoints, err := dnsProvider.Records(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(endpoints))
-	assert.Equal(t, "test.com", endpoints[0].DNSName)
+	assert.Equal(t, testDomain, endpoints[0].DNSName)
 	assert.Equal(t, "A", endpoints[0].RecordType)
-	assert.Equal(t, "1.2.3.4", endpoints[0].Targets[0])
+	assert.Equal(t, testIPv4, endpoints[0].Targets[0])
 	assert.Equal(t, int64(300), int64(endpoints[0].RecordTTL))
 
 	assert.Equal(t, "test2.com", endpoints[1].DNSName)
@@ -190,7 +190,7 @@ func getZonesResponseRecords(t *testing.T, w http.ResponseWriter) {
 		Count:      2,
 		NextOffset: 0,
 		Items: []*domains.Zone{
-			{ID: "1234", Name: "test.com"},
+			{ID: "1234", Name: testDomain},
 			{ID: "5678", Name: "test2.com"},
 		},
 	}
@@ -218,7 +218,7 @@ func getRrsetsResponseRecords(t *testing.T, w http.ResponseWriter, domain string
 					Type: "A",
 					TTL:  300,
 					Records: []domains.RecordItem{
-						{Content: "1.2.3.4"},
+						{Content: testIPv4},
 					},
 				},
 			},
