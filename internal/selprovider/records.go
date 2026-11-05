@@ -92,19 +92,30 @@ func (p *Provider) collectEndPoints(
 ) []*endpoint.Endpoint {
 	var endpoints []*endpoint.Endpoint
 	for _, rrSet := range rrSets {
-		if provider.SupportedRecordType(string(rrSet.Type)) {
-			for _, rec := range rrSet.Records {
+		if !provider.SupportedRecordType(string(rrSet.Type)) || len(rrSet.Records) == 0 {
+			continue
+		}
+
+		targets := make([]string, len(rrSet.Records))
+		for i, rec := range rrSet.Records {
+			targets[i] = rec.Content
+		}
+
+		if rrSet.Type == domains.TXT {
+			for _, target := range targets {
 				endpoints = append(
 					endpoints,
-					endpoint.NewEndpointWithTTL(
-						rrSet.Name,
-						string(rrSet.Type),
-						endpoint.TTL(rrSet.TTL),
-						rec.Content,
-					),
+					endpoint.NewEndpointWithTTL(rrSet.Name, string(rrSet.Type), endpoint.TTL(rrSet.TTL), target),
 				)
 			}
+
+			continue
 		}
+
+		endpoints = append(
+			endpoints,
+			endpoint.NewEndpointWithTTL(rrSet.Name, string(rrSet.Type), endpoint.TTL(rrSet.TTL), targets...),
+		)
 	}
 
 	return endpoints
